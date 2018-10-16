@@ -1,0 +1,12 @@
+{
+  "name": "chat-test",
+  "version": "0.0.1",
+  "description": "chat app using socket.io",
+  "dependencies": {
+    "express": "^4.16.4",
+    "socket.io": "^2.1.1"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
+}

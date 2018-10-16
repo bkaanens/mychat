@@ -1,0 +1,194 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>MyChat</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        #header {
+            background-color: #993333;
+            color: #ffffff;
+            padding: 15px;
+        } 
+        #usersHeader {
+            background-color: #993333;
+            color: #ffffff;
+            padding: 12px 20px;
+            border-radius: 4px;
+            float: right;
+        }           
+        html {
+            font-family: "Lucida Sans", sans-serif;
+            font: 13px "Lucida Sans", sans-serif;
+        }           
+        input[type=text] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        input[type=submit] {
+            background-color: #993333;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            float: left;
+            width: 100%;
+        }
+        input[type=submit]:hover {
+            background-color: #75262b;
+        }
+        .btnClass {
+            width: 90px; 
+            background: #bbbbbb; 
+            border: none; 
+            padding: 15px; 
+            margin: 15px;            
+            font: 15px "Lucida Sans", sans-serif;            
+        }        
+        
+        #messages { 
+            list-style-type: none; 
+            margin: 0; 
+            padding: 5; 
+        }
+        #messages li { 
+            padding: 10px 10px; 
+        }
+        #messages li:nth-child(odd) { 
+            background: #eee; 
+        }
+        #chatroom {
+            display: none; 
+        }
+        .col-75-responsive { 
+            float: left;
+            width: 75%;
+            padding: 15px;
+        }     
+        #chatFullError { 
+            display: none; 
+        }
+        .users {
+            width: 25%;
+            float: left;
+            padding: 15px;
+            margin-top: 20px;           
+        }        
+        .col-25 {
+            float: left;
+            width: 25%;
+            margin-top: 6px;
+        }
+        .col-75 {
+            float: left;
+            width: 75%;
+            margin-top: 6px;
+        }
+        .row::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+        /* Responsive layout for small screens */
+        @media (max-width: 600px) {
+            .col-75-responsive {
+                width: 100%;
+                height: auto;
+            }            
+            .users {
+                display: none;
+                height: auto;
+                width: 70%;
+            }
+        }
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <script>
+
+        $(function () {
+            var socket = io();
+
+            $('#connectBtn').click(function () {
+                socket.emit('new user', function (data) {
+                    if (data) {
+                        $('#connectDiv').hide();
+                        $('#chatroom').show();
+                    } else {
+                        $('#chatFullError').show();
+                        $('#chatroom').hide();
+                    }
+                });
+            });
+
+            $('form').submit(function () {
+                socket.emit('chat message', $('#m').val());
+                $('#m').val('');
+                return false;
+            });
+            socket.on('chat message', function (data) {
+                $('#messages').prepend($('<li>').text(data.user + ": " + data.message));
+            });
+            socket.on('disconnect', function (msg) {
+                $('#messages').prepend($('<li>').text(msg));
+            });
+            socket.on('connection', function (msg) {
+                $('#messages').prepend($('<li>').text(msg));
+            });
+            socket.on('broadcast', function (msg) {
+                $('#messages').prepend($('<li>').text(msg));
+            });
+            socket.on('usernames', function (namesArray) {
+                var content = '';
+                console.log(namesArray.length);
+                for (i = 0; i < namesArray.length; i++) {
+                    content += namesArray[i] + '<br/>';
+                }
+                $('#connectedUsers').html(content); 
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <div id="header">
+        <h1>MyChat!</h1>
+    </div>
+
+    <div id="chatroom">
+        <div id="input" ></div>
+        <form action="" class="col-75-responsive">
+            <div class="col-75">
+                <input id="m" autocomplete="off" type="text" placeholder="Say something">
+            </div>
+            <div class="col-25">
+                <input id="m" autocomplete="off" type="submit" value="Send">
+            </div>
+            
+        </form>
+        <div id="usersHeader" class="users"> <p>Connected users</p></div>
+    </div>
+
+    <div class="col-75-responsive" >
+        <ul id="messages"></ul>
+    </div>    
+    <div class = "users" id="connectedUsers">        
+        <!-- List of users is listed here as the connect and disconnects using jquery -->
+    </div>
+  
+    <div id="connectDiv">
+        <button class="btnClass" id="connectBtn">Join chat</button>
+        <p id="chatFullError">Sorry, chat room is full. Pleasy try again later.</p>
+    </div>
+</body>
+
+</html>
